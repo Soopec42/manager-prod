@@ -11,7 +11,7 @@ from app.core.security import get_hash_password, verify_password
 
 def get_user_by_email(db: Session, email: str) -> User | None:
     stmt = select(User).where(User.email == email)
-    return db.execute(stmt).scalar_one_or_none
+    return db.execute(stmt).scalar_one_or_none()
 
 def create_user(
     db: Session,
@@ -19,16 +19,17 @@ def create_user(
     full_name: str,
     email: str,
     password: str,
-    role: str = "user"
+    role: str = "user" 
 ) -> User:
     user = User(
         full_name = full_name, 
         email = email, 
-        hash_password = get_hash_password(password), 
+        hashed_password = get_hash_password(password),
+         
         role = role
     )
     db.add(user)
-    db.commit()
+    db.commit() 
     db.refresh(user)
     return user
 
@@ -41,3 +42,11 @@ def authenticate_user(db: Session, email: str, password: str) -> User | None:
         return None
 
     return user
+
+
+def build_token_response(access_token: str) -> dict[str, str]:
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+    }
+

@@ -1,54 +1,41 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 
-from app.schemas.auth import LoginRequest, TokenResponse
+
+from app.schemas.auth import LoginRequest, TokenResponse, UserPublic
+from app.services.auth_service import get_user_by_email, verify_password, authenticate_user
+from app.core.security import create_access_token
+from app.db.base import DBSession
+from app.api.deps import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest):
+def login(payload: LoginRequest, db: DBSession):
 
-    user = fatch_user_by_email(payload.email)
-    auth_error = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid email or password",
-        headers={"WWW-Authenticate": "Bearer"}
-    )
-
+    user = authenticate_user(db, payload.email, payload.password)
     if user is None:
-        raise auth_error
-
-    password_ok = verefy_password(
-        plain_password: payload.password,
-        hashed_password: user.hashed_password
-    )
-
-    if not password_ok:
-        raise auth_error
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
     
-        
+    access_token = create_access_token(subject=user.email)
 
-
-    """
-    TODO:
-    1. Find user by email.
-    2. Verify password.
-    3. Create JWT.
-    4. Return token + user.
-    """
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="TODO: implement POST /auth/login",
+    return TokenResponse(
+        access_token=access_token,
+        user= UserPublic(
+            id = user.id,
+            full_name=user.full_name,
+            email = user.email,
+            role = user.role
+        )
     )
 
 
-@router.get("/me")
-def me():
-    """
-    TODO:
-    Use dependency get_current_user and return current user profile.
-    """
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="TODO: implement GET /auth/me",
-    )
+
+@router.get("/me",response_model=UserPublic)
+def me(user: UserPublic = Depends(get_current_user())):
+    return user
+
+    
