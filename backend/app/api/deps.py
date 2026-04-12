@@ -19,10 +19,6 @@ def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    # 1. Read the Bearer token.
-    # 2. Decode JWT in core/security.py.
-    # 3. Load user from DB by payload["sub"].
-    # 4. Return current user object.
 
     if credentials is None:
         raise credentials_exception
