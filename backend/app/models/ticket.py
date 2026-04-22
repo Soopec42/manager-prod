@@ -35,11 +35,11 @@ class Ticket(Base):
     customer_name: Mapped[str] = mapped_column(String(255))
     customer_email: Mapped[str] = mapped_column(String(255), index=True)
 
-    created_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     assignee_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     due_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     created_by = relationship("User", foreign_keys=[created_by_id], back_populates="created_tickets")
